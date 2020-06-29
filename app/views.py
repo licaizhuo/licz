@@ -3,11 +3,14 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
+from rest_framework.parsers import MultiPartParser
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app.models import User
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from rest_framework import settings
 
 
 # Create your views here.
@@ -182,3 +185,17 @@ class UserAPIView(APIView):
                 "status": 500,
                 "message": "删除用户失败",
             })
+
+
+class StudentAPIView(APIView):
+    # 局部渲染
+    # renderer_classes = (BrowsableAPIRenderer, JSONRenderer)
+    # 局部解析器
+    # parser_classes = [MultiPartParser]
+
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        return Response("访问成功-post")
+
+    def get(self, request, *args, **kwargs):
+        return Response("访问成功-get")
