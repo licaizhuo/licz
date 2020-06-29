@@ -93,26 +93,24 @@ class UserAPIView(APIView):
         # print(user_id)
         # user_id = request.query_params.get('id')
         user_id = kwargs.get('id')
-        if user_id:
-            user_val = User.objects.filter(pk=user_id).values("username", "password", "gender")
-            if user_val:
-                return JsonResponse({
-                    "status": 200,
-                    "message": "查询单个用户成功",
-                    "results": user_val.first(),
-                })
-        else:
-            user_list = User.objects.filter().values("username", "password", "gender")
-            if user_list:
-                return JsonResponse({
-                    "status": 200,
-                    "message": "查询所有用户成功",
-                    "results": list(user_list),
-                })
-        return JsonResponse({
-            "status": 500,
-            "message": "查询失败",
-        })
+        user_val = User.objects.get(pk=user_id)
+        # if user_id:
+        #     user_val = User.objects.filter(pk=user_id).values("username", "password", "gender")
+        #     if user_val:
+        #         return JsonResponse({
+        #             "status": 200,
+        #             "message": "查询单个用户成功",
+        #             "results": user_val.first(),
+        #         })
+        # else:
+        #     user_list = User.objects.filter().values("username", "password", "gender")
+        #     if user_list:
+        #         return JsonResponse({
+        #             "status": 200,
+        #             "message": "查询所有用户成功",
+        #             "results": list(user_list),
+        #         })
+        return Response("DRF GET SUCCESS")
 
     def post(self, request, *args, **kwargs):
         try:
