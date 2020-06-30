@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 
 from stu.models import Student
 
@@ -16,10 +16,18 @@ class StudentDeSerializer(serializers.Serializer):
         max_length=10,
         min_length=2,
     )
-    phone = serializers.CharField(
-        max_length=11,
-        min_length=11,
-    )
+    phone = serializers.CharField()
+
+    def validate(self, attrs):
+        phone = attrs.get('phone')
+        if len(phone) != 11:
+            raise exceptions.ValidationError('请输入正确的手机号')
+        return attrs
+
+    def validate_name(self, value):
+        if '我操' in value:
+            raise exceptions.ValidationError("用户名包含敏感词")
+        return value
 
     def create(self, validated_data):
         return Student.objects.create(**validated_data)
