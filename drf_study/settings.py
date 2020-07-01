@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'api',
     'stu',
     'three',
+    'four',
+    'login_register',
 ]
 
 MIDDLEWARE = [

@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from three.models import Book
 from three.serializers import BookModelSerializer, BookDeModelSerializer, BookModelSerializerV2
+from utils.response import MyResponse
 
 
 class BookAPIView(APIView):
@@ -182,11 +183,13 @@ class BookAPIViewV2(APIView):
                 book_list_ser = BookModelSerializerV2(book_list, many=True)
                 book_info = book_list_ser.data
                 message = "查询所有图书成功"
-            return Response({
-                "status": status.HTTP_200_OK,
-                "message": message,
-                "results": book_info
-            })
+            # return Response({
+            #     "status": status.HTTP_200_OK,
+            #     "message": message,
+            #     "results": book_info
+            # })
+            return MyResponse(status.HTTP_200_OK,
+                              message, results=book_info)
         except:
             raise exceptions.NotFound("查询图书失败")
 
@@ -254,21 +257,63 @@ class BookAPIViewV2(APIView):
             "results": BookModelSerializerV2(book_obj).data
         })
 
+    # def patch(self, request, *args, **kwargs):
+    #     request_data = request.data
+    #     book_id = kwargs.get("id")
+    #     try:
+    #         book_obj = Book.objects.get(pk=book_id)
+    #     except:
+    #         return Response({
+    #             "status": status.HTTP_400_BAD_REQUEST,
+    #             "message": "图书不存在"
+    #         })
+    #     book_ser = BookModelSerializerV2(data=request_data, instance=book_obj, partial=True)
+    #     book_ser.is_valid(raise_exception=True)
+    #     book_ser.save()
+    #     return Response({
+    #         "status": status.HTTP_400_BAD_REQUEST,
+    #         "message": "更新成功",
+    #         "results": BookModelSerializerV2(book_obj).data
+    #     })
     def patch(self, request, *args, **kwargs):
         request_data = request.data
         book_id = kwargs.get("id")
-        try:
-            book_obj = Book.objects.get(pk=book_id)
-        except:
+        if isinstance(request_data, dict) and book_id:
+            book_ids = [book_id]
+            request_data = [request_data]
+        elif isinstance(request_data, list) and not book_id:
+            book_ids = []
+            flag = 0
+            for dic in request_data:
+                pk = dic.pop('pk', -1)
+                if pk == -1:
+                    flag += 1
+                book_ids.append(pk)
+            if flag == len(book_ids):
+                return Response({
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "message": "请输入正确的数据来修改你先修改的图书",
+                })
+        else:
             return Response({
                 "status": status.HTTP_400_BAD_REQUEST,
-                "message": "图书不存在"
+                "message": "数据格式有误",
             })
-        book_ser = BookModelSerializerV2(data=request_data, instance=book_obj, partial=True)
+        book_list = []
+        new_data = []
+        for index, pk in enumerate(book_ids):
+            try:
+                book_obj = Book.objects.get(pk=pk)
+                book_list.append(book_obj)
+                new_data.append(request_data[index])
+            except:
+                continue
+        book_ser = BookModelSerializerV2(data=new_data, instance=book_list, partial=True, many=True)
+        # print(book_ser)
         book_ser.is_valid(raise_exception=True)
-        book_ser.save()
+        bool_info = book_ser.save()
         return Response({
             "status": status.HTTP_400_BAD_REQUEST,
             "message": "更新成功",
-            "results": BookModelSerializerV2(book_obj).data
+            "result": BookModelSerializerV2(bool_info, many=True).data
         })

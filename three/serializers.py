@@ -1,4 +1,5 @@
 from rest_framework import serializers, exceptions
+from rest_framework.serializers import ListSerializer
 
 from three.models import Book, Press
 
@@ -38,22 +39,25 @@ class BookDeModelSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class BookListSerializer(ListSerializer):
+
+    def update(self, instance, validated_data):
+        return [
+            self.child.update(obj, validated_data[index]) for index, obj in enumerate(instance)
+        ]
+
+
 class BookModelSerializerV2(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ("book_name", "price", "publish", "authors", "pic")
+        list_serializer_class = BookListSerializer
         extra_kwargs = {
             "book_name": {
                 "required": True,
                 "error_messages": {
                     "required": "图书名是必填项"
                 }
-            },
-            "publish": {
-                "write_only": True
-            },
-            "authors": {
-                "write_only": True
             },
             "pic": {
                 "read_only": True
